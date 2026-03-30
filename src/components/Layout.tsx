@@ -231,6 +231,7 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
@@ -242,13 +243,19 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <aside className="hidden lg:block w-64 bg-slate-900 text-white">
-        <nav className="p-4">
+
+      {/* ── Desktop Sidebar ── */}
+      <aside className="hidden lg:flex lg:flex-col w-64 bg-slate-900 text-white">
+        <div className="p-4 border-b border-slate-700 flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold text-sm">⚡</div>
+          <span className="text-white font-bold text-base">FreelanceFlow</span>
+        </div>
+        <nav className="p-4 flex-1">
           {navLinks.map(link => (
             <Link
               key={link.path}
               to={link.path}
-              className={`block px-3 py-2 rounded-lg ${isActive(link.path)
+              className={`block px-3 py-2 rounded-lg mb-1 ${isActive(link.path)
                 ? 'bg-indigo-500/20 text-indigo-300'
                 : 'text-slate-400 hover:bg-slate-800'
                 }`}
@@ -257,45 +264,89 @@ export default function Layout() {
             </Link>
           ))}
         </nav>
-
         <div className="p-4 border-t border-slate-700">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs font-bold">
               {user?.email?.charAt(0).toUpperCase()}
             </div>
-
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-slate-300 truncate">
-                {user?.email}
-              </p>
-
-              <span
-                className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-medium
-          ${user?.plan === 'pro'
-                    ? 'bg-amber-500/20 text-amber-300'
-                    : 'bg-slate-700 text-slate-400'
-                  }`}
-              >
+              <p className="text-xs text-slate-300 truncate">{user?.email}</p>
+              <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-700 text-slate-400'}`}>
                 {user?.plan === 'pro' ? '⭐ PRO' : 'FREE'}
               </span>
             </div>
           </div>
-
-          <button
-            onClick={handleLogout}
-            className="text-xs text-red-400 hover:text-red-300 transition-colors"
-          >
+          <button onClick={handleLogout} className="text-xs text-red-400 hover:text-red-300 transition-colors">
             Sign out →
           </button>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b px-4 py-3 flex justify-end">
+      {/* ── Mobile Drawer Overlay ── */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-slate-900 text-white flex flex-col">
+            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold text-sm">⚡</div>
+                <span className="text-white font-bold text-base">FreelanceFlow</span>
+              </div>
+              <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400 text-xl">✕</button>
+            </div>
+            <nav className="p-4 flex-1">
+              {navLinks.map(link => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-3 py-3 rounded-lg mb-1 text-base ${isActive(link.path)
+                    ? 'bg-indigo-500/20 text-indigo-300'
+                    : 'text-slate-400 hover:bg-slate-800'
+                    }`}
+                >
+                  {link.icon} {link.label}
+                </Link>
+              ))}
+            </nav>
+            <div className="p-4 border-t border-slate-700">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-bold">
+                  {user?.email?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-slate-300 truncate">{user?.email}</p>
+                  <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${user?.plan === 'pro' ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-700 text-slate-400'}`}>
+                    {user?.plan === 'pro' ? '⭐ PRO' : 'FREE'}
+                  </span>
+                </div>
+              </div>
+              <button onClick={handleLogout} className="text-sm text-red-400 hover:text-red-300 transition-colors">
+                Sign out →
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* ── Main Content ── */}
+      <div className="flex-1 flex flex-col min-w-0">
+
+        {/* Top header */}
+        <header className="bg-white border-b px-4 py-3 flex items-center justify-between lg:justify-end gap-3">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="lg:hidden flex flex-col gap-1.5 p-1"
+          >
+            <span className="block w-5 h-0.5 bg-slate-700" />
+            <span className="block w-5 h-0.5 bg-slate-700" />
+            <span className="block w-5 h-0.5 bg-slate-700" />
+          </button>
           <Timer />
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4">
+        <main className="flex-1 overflow-y-auto p-4 pb-6">
           <Outlet />
         </main>
       </div>
